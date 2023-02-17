@@ -1,0 +1,25 @@
+service: cqrs-test
+
+plugins:
+  - serverless-webpack
+  - serverless-iam-roles-per-function
+
+custom:
+  webpack:
+    webpackConfig: 'webpack.config.js'
+    includeModules: false
+    packager: 'yarn'
+    excludeFiles: src/**/*.test.ts
+  configFile: ${file(.env.${opt:stage, 'dev'}.yml):}
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  architecture: arm64
+  stage: ${self:custom.configFile.STAGE}
+  region: ${self:custom.configFile.REGION}
+  environment:
+    STAGE: ${self:custom.configFile.STAGE}
+
+functions:
+  - ${file(src/resources/functions.yml)}
