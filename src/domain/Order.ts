@@ -1,29 +1,76 @@
-import { DomainEvent } from "./DomainEvent";
-import { OrderProductChange } from "./events/OrderProductChange";
+import { OrderProductChanged } from "./events/OrderProductChanged";
 import { OrderData } from "./valueObjects/OrderData";
-import { Product } from "./valueObjects/Product";
-
-// Max 10 items in order, if over 5 items in order then 10% discount
+import { OrderId } from "./valueObjects/OrderId";
+import { EmailAddress } from "./valueObjects/EmailAddress";
+import { Price } from "./valueObjects/Price";
+import { OrderCreated } from "./events/OrderCreated";
+import { DomainError } from "./error/DomainError";
+import { Product } from "./entities/Product";
+import { ProductId } from "./valueObjects/ProductId";
 
 export class Order {
   private readonly MIN_ORDER_ITEMS_DISCOUNT_COUNT = 5;
   private readonly MAX_ORDER_ITEMS = 10;
-  private readonly ORDER_DISCOUNT_RATE = 0.2;
 
   constructor(
     private readonly data: OrderData,
-    private readonly products: Product[]
+    private readonly products: ProductId[]
   ) {}
 
-  createOrder() {
-    // order created
+  static create(customerEmail: string) {
+    return new OrderCreated(
+      OrderId.generate(),
+      EmailAddress.from(customerEmail),
+      Price.from(0, "PLN"),
+      "",
+      false
+    );
   }
 
-  addOrderItem(productToAdd: Product): OrderProductChange {
-    // logic
+  private shouldDiscountBeApplied = () =>
+    this.products.length + 1 >= this.MIN_ORDER_ITEMS_DISCOUNT_COUNT &&
+    this.data.isDiscountApplied === false;
 
-    return new OrderProductChange(this.data.orderId, productToAdd.valueOf().id);
+  addOrderItem(productToAdd: Product) {
+    if (this.products.length === this.MAX_ORDER_ITEMS) {
+      throw new DomainError(
+        `Too many items assigned to one order, max items: ${this.MAX_ORDER_ITEMS}`
+      );
+    }
+
+    return new OrderProductChanged(
+      this.data.id,
+      productToAdd.id,
+      this.shouldDiscountBeApplied()
+    );
   }
 
-  removeOrderItem() {}
+  private shouldDiscountBeRevoked = () =>
+    this.products.length - 1 < this.MIN_ORDER_ITEMS_DISCOUNT_COUNT &&
+    this.data.isDiscountApplied;
+
+  removeOrderItem(productToRemove: Product): OrderProductChanged {
+    const events = [];
+
+    const product = this.products.find(
+      (productId) => productId === productToRemove.id
+    );
+
+    if (!product) {
+      throw new DomainError("Product not found in the order");
+    }
+
+    return new OrderProductChanged(
+      this.data.id,
+      productToRemove.id,
+      this.shouldDiscountBeRevoked()
+    );
+  }
+
+  valueOf() {
+    return {
+      ...this.data,
+      products: this.products,
+    };
+  }
 }

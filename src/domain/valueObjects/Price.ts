@@ -1,4 +1,4 @@
-import { InvalidArgumentException } from "../../shared/errors/InvalidArgumentException";
+import { DomainError } from "../error/DomainError";
 
 export type SupportedCurrencies = "PLN" | "EUR" | "USD";
 
@@ -9,8 +9,8 @@ export class Price {
   ) {}
 
   private static validatePrice(amount: number) {
-    if (amount <= 0) {
-      throw new InvalidArgumentException("Price can't be negative");
+    if (amount < 0) {
+      throw new DomainError("Price can't be negative");
     }
   }
 

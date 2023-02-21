@@ -1,12 +1,13 @@
 import { EventType } from "@castore/core";
-import { SupportedCurrencies } from "../domain/valueObjects/Price";
+import { EmailAddress } from "../domain/valueObjects/EmailAddress";
+import { Price } from "../domain/valueObjects/Price";
+import { ProductId } from "../domain/valueObjects/ProductId";
 
 export const orderCreatedEventType = new EventType<
   "ORDER_CREATED",
   {
-    id: string;
-    customerEmail: string;
-    price: { amount: number; currency: SupportedCurrencies };
+    customerEmail: ReturnType<EmailAddress["valueOf"]>;
+    price: ReturnType<Price["valueOf"]>;
     comment: string;
     isDiscountApplied: boolean;
   }
@@ -14,10 +15,13 @@ export const orderCreatedEventType = new EventType<
 
 export const productAddedToOrderType = new EventType<
   "PRODUCT_ADDED_TO_ORDER",
-  { orderId: string; productId: string }
+  {
+    productId: ProductId;
+    isDiscountApplied: boolean;
+  }
 >({ type: "PRODUCT_ADDED_TO_ORDER" });
 
 export const productRemovedFromOrderType = new EventType<
   "PRODUCT_REMOVED_FROM_ORDER",
-  { orderId: string; productId: string }
+  { productId: ProductId; isDiscountRevoked: boolean }
 >({ type: "PRODUCT_REMOVED_FROM_ORDER" });

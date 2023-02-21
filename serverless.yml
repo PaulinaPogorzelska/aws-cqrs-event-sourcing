@@ -22,4 +22,51 @@ provider:
     STAGE: ${self:custom.configFile.STAGE}
 
 functions:
-  - ${file(src/resources/functions.yml)}
+  createOrder:
+    handler: src/adapters/http/createOrder/createOrder.handler
+    environment:
+      ORDER_TABLE: !Ref OrderTable
+    events:
+      - http:
+          path: orders
+          method: post
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:PutItem
+          - dynamodb:Query
+        Resource: !GetAtt OrderTable.Arn
+  createProduct:
+    handler: src/adapters/http/createProduct/createProduct.handler
+    environment:
+      PRODUCT_TABLE: !Ref ProductTable
+    events:
+      - http:
+          path: products
+          method: post
+    iamRoleStatements:
+      - Effect: Allow
+        Action: dynamodb:PutItem
+        Resource: !GetAtt ProductTable.Arn
+  addProductToOrder:
+    handler: src/adapters/http/addProductToOrder/addProductToOrder.handler
+    environment:
+      ORDER_TABLE: !Ref OrderTable
+    events:
+      - http:
+          path: orders/{id}/addProduct
+          method: put
+          request: 
+            parameters: 
+              paths: 
+                id: true
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:PutItem
+          - dynamodb:Query
+        Resource: !GetAtt OrderTable.Arn
+
+
+resources:
+  - ${file(src/adapters/database/database.yml)}

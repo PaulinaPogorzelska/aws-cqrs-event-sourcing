@@ -1,7 +1,9 @@
 import { Command } from "@castore/core";
-import { orderEventStore } from "../../eventStore";
-import { Result } from "../Result";
-import { Order } from "../../../domain/Order";
+import { orderEventStore } from "../../../adapters/database/OrderEventStore/eventStore";
+import { OrderFactory } from "../../../domain/factories/OrderFactory";
+import { OrderId } from "../../../domain/valueObjects/OrderId";
+import { ProductRepository } from "../../../ports/database/ProductRepository";
+import { OrderAggregate } from "../../aggregate";
 
 interface Input {
   orderId: string;
@@ -9,28 +11,50 @@ interface Input {
 }
 
 interface Context {
-  order: Order;
+  productRepository: ProductRepository;
 }
+
+const getOrder = (id: OrderId, aggregate: OrderAggregate) => {
+  return OrderFactory.create(
+    id,
+    aggregate.customerEmail,
+    aggregate.price,
+    aggregate.comment,
+    aggregate.isDiscountApplied,
+    aggregate.products
+  );
+};
 
 export const addProductToOrderCommand = new Command({
   commandId: "ADD_PRODUCT_TO_ORDER",
   requiredEventStores: [orderEventStore],
   handler: async (
-    commandInput: Input,
+    { orderId, productId }: Input,
     [orderEventStore],
-    { order }: Context
+    { productRepository }: Context
   ) => {
-    const { orderId, productId } = commandInput;
+    const { aggregate } = await orderEventStore.getAggregate(orderId);
 
-    order.addOrderItem();
+    if (!aggregate) {
+      throw new Error("Aggregate not found");
+    }
+
+    const { version } = aggregate;
+
+    const product = await productRepository.findById(productId);
+
+    const order = getOrder(orderId, aggregate);
+
+    const { isDiscountApplied } = order.addOrderItem(product);
 
     await orderEventStore.pushEvent({
-      aggregateId: "",
-      version: 1,
       type: "PRODUCT_ADDED_TO_ORDER",
-      payload: { orderId, productId },
+      payload: {
+        productId,
+        isDiscountApplied,
+      },
+      aggregateId: orderId,
+      version: version + 1,
     });
-
-    return { result: Result.Success };
   },
 });

@@ -4,7 +4,7 @@ import { Price } from "./Price";
 
 export class OrderData {
   constructor(
-    public readonly orderId: OrderId,
+    public readonly id: OrderId,
     public readonly customerEmail: EmailAddress,
     public readonly price: Price,
     public readonly comment: string,

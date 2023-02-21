@@ -1,4 +1,4 @@
-import { InvalidArgumentException } from "../../shared/errors/InvalidArgumentException";
+import { DomainError } from "../error/DomainError";
 
 export class EmailAddress {
   constructor(private readonly address: string) {}
@@ -12,7 +12,7 @@ export class EmailAddress {
 
   static from(address: string) {
     if (!this.isValidAddress(address)) {
-      throw new InvalidArgumentException();
+      throw new DomainError("Not a valid email address");
     }
 
     return new EmailAddress(address);
