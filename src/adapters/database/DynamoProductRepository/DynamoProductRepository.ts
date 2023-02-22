@@ -1,20 +1,16 @@
-import { DocumentClient } from "aws-sdk/clients/dynamodb";
 import { Price } from "../../../domain/valueObjects/Price";
-import { Product } from "../../../domain/entities/Product";
+import { Product } from "../../entities/Product";
 import { ProductId } from "../../../domain/valueObjects/ProductId";
-import {
-  CreateProductProperties,
-  ProductRepository,
-} from "../../../ports/database/ProductRepository";
+import { ProductRepository } from "../../../ports/database/ProductRepository";
 import { IllegalArgumentException } from "../../../shared/errors/IllegalArgumentException";
-import { checkForEnv } from "../../../shared/utils/checkForEnv";
+import { DynamoRepository } from "../DynamoRepository/DynamoRepository";
 
-export class DynamoProductRepository implements ProductRepository {
-  private readonly documentClient = new DocumentClient();
-  private readonly tableName: string;
-
+export class DynamoProductRepository
+  extends DynamoRepository
+  implements ProductRepository
+{
   constructor() {
-    this.tableName = checkForEnv(process.env.PRODUCT_TABLE);
+    super("PRODUCT_TABLE");
   }
 
   async create(productToCreate: Product): Promise<void> {
@@ -22,6 +18,7 @@ export class DynamoProductRepository implements ProductRepository {
       .put({
         TableName: this.tableName,
         Item: productToCreate,
+        ConditionExpression: "attribute_not_exists(id)",
       })
       .promise();
   }

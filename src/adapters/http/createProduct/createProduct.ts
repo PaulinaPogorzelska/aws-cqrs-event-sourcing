@@ -1,6 +1,7 @@
 import type { APIGatewayProxyHandler } from "aws-lambda";
 import joi from "joi";
 import { createProductCommand } from "../../../app/command/CreateProduct/CreateProduct";
+import { ProductRepository } from "../../../ports/database/ProductRepository";
 import { IllegalArgumentException } from "../../../shared/errors/IllegalArgumentException";
 import { DynamoProductRepository } from "../../database/DynamoProductRepository/DynamoProductRepository";
 import { httpMiddleware } from "../httpMiddleware/httpMiddleware";
@@ -15,7 +16,7 @@ interface ParsedBody {
   priceAmount: number;
 }
 
-const productRepository = new DynamoProductRepository();
+const productRepository: ProductRepository = new DynamoProductRepository();
 
 export const handler: APIGatewayProxyHandler = httpMiddleware(async (event) => {
   const { body } = event;

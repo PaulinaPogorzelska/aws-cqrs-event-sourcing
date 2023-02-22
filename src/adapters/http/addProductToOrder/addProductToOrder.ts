@@ -1,9 +1,10 @@
 import { APIGatewayProxyHandler } from "aws-lambda";
 import joi from "joi";
 import { addProductToOrderCommand } from "../../../app/command/AddProductToOrder/AddProductToOrder";
+import { ProductRepository } from "../../../ports/database/ProductRepository";
 import { IllegalArgumentException } from "../../../shared/errors/IllegalArgumentException";
 import { DynamoProductRepository } from "../../database/DynamoProductRepository/DynamoProductRepository";
-import { orderEventStore } from "../../database/OrderEventStore/eventStore";
+import { orderEventStore } from "../../database/OrderEventStore/orderEventStore";
 import { httpMiddleware } from "../httpMiddleware/httpMiddleware";
 
 const schema = joi.object({
@@ -14,7 +15,7 @@ interface ParsedBody {
   id: string;
 }
 
-const productRepository = new DynamoProductRepository();
+const productRepository: ProductRepository = new DynamoProductRepository();
 
 export const handler: APIGatewayProxyHandler = httpMiddleware(async (event) => {
   const { pathParameters, body } = event;
@@ -46,5 +47,5 @@ export const handler: APIGatewayProxyHandler = httpMiddleware(async (event) => {
     { productRepository }
   );
 
-  return { statusCode: 200, body: "OK" };
+  return { statusCode: 200, body: "Product added" };
 });

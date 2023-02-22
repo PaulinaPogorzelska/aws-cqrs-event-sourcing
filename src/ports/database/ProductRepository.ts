@@ -1,11 +1,5 @@
-import { Price } from "../../domain/valueObjects/Price";
-import { Product } from "../../domain/entities/Product";
+import { Product } from "../../adapters/entities/Product";
 import { ProductId } from "../../domain/valueObjects/ProductId";
-
-export interface CreateProductProperties {
-  name: string;
-  price: Price;
-}
 
 export interface ProductRepository {
   create(productToCreate: Product): Promise<void>;

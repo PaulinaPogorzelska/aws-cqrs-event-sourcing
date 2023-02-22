@@ -25,7 +25,7 @@ functions:
   createOrder:
     handler: src/adapters/http/createOrder/createOrder.handler
     environment:
-      ORDER_TABLE: !Ref OrderTable
+      ORDER_EVENT_STORE_TABLE: !Ref OrderEventStoreTable
     events:
       - http:
           path: orders
@@ -35,7 +35,7 @@ functions:
         Action:
           - dynamodb:PutItem
           - dynamodb:Query
-        Resource: !GetAtt OrderTable.Arn
+        Resource: !GetAtt OrderEventStoreTable.Arn
   createProduct:
     handler: src/adapters/http/createProduct/createProduct.handler
     environment:
@@ -51,7 +51,8 @@ functions:
   addProductToOrder:
     handler: src/adapters/http/addProductToOrder/addProductToOrder.handler
     environment:
-      ORDER_TABLE: !Ref OrderTable
+      PRODUCT_TABLE: !Ref ProductTable
+      ORDER_EVENT_STORE_TABLE: !Ref OrderEventStoreTable
     events:
       - http:
           path: orders/{id}/addProduct
@@ -65,7 +66,33 @@ functions:
         Action:
           - dynamodb:PutItem
           - dynamodb:Query
+        Resource: !GetAtt OrderEventStoreTable.Arn
+      - Effect: Allow
+        Action: dynamodb:GetItem
+        Resource: !GetAtt ProductTable.Arn
+  onOrderProjection:
+    handler: src/adapters/event/onOrderProjection/onOrderProjection.handler
+    environment:
+      PRODUCT_TABLE: !Ref ProductTable
+      ORDER_EVENT_STORE_TABLE: !Ref OrderEventStoreTable
+      ORDER_TABLE: !Ref OrderTable
+    iamRoleStatements:
+      - Effect: Allow
+        Action: dynamodb:Query
+        Resource: !GetAtt OrderEventStoreTable.Arn
+      - Effect: Allow
+        Action: dynamodb:GetItem
+        Resource: !GetAtt ProductTable.Arn
+      - Effect: Allow
+        Action: dynamodb:PutItem
         Resource: !GetAtt OrderTable.Arn
+    events:
+      - stream:
+          type: dynamodb
+          arn:
+            Fn::GetAtt:
+              - OrderEventStoreTable
+              - StreamArn
 
 
 resources:

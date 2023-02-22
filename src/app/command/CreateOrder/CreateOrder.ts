@@ -1,5 +1,5 @@
 import { Command } from "@castore/core";
-import { orderEventStore } from "../../../adapters/database/OrderEventStore/eventStore";
+import { orderEventStore } from "../../../adapters/database/OrderEventStore/orderEventStore";
 import { Order } from "../../../domain/Order";
 
 interface Input {

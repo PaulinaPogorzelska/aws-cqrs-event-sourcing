@@ -5,7 +5,7 @@ import { EmailAddress } from "./valueObjects/EmailAddress";
 import { Price } from "./valueObjects/Price";
 import { OrderCreated } from "./events/OrderCreated";
 import { DomainError } from "./error/DomainError";
-import { Product } from "./entities/Product";
+import { Product } from "../adapters/entities/Product";
 import { ProductId } from "./valueObjects/ProductId";
 
 export class Order {

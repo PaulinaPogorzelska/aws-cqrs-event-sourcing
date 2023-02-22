@@ -1,5 +1,5 @@
 import { Command } from "@castore/core";
-import { Product } from "../../../domain/entities/Product";
+import { Product } from "../../../adapters/entities/Product";
 import { Price } from "../../../domain/valueObjects/Price";
 import { ProductId } from "../../../domain/valueObjects/ProductId";
 import { ProductRepository } from "../../../ports/database/ProductRepository";

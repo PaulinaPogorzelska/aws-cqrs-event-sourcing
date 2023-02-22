@@ -1,5 +1,5 @@
-import { Price } from "../valueObjects/Price";
-import { ProductId } from "../valueObjects/ProductId";
+import { Price } from "../../domain/valueObjects/Price";
+import { ProductId } from "../../domain/valueObjects/ProductId";
 
 export class Product {
   constructor(
