@@ -1,8 +1,8 @@
-import { EmailAddress } from "../../../domain/valueObjects/EmailAddress";
 import { OrderId } from "../../../domain/valueObjects/OrderId";
 import { OrderRepository } from "../../../ports/database/OrderRepository";
 import { IllegalArgumentException } from "../../../shared/errors/IllegalArgumentException";
 import { Order } from "../../entities/Order";
+import { Product } from "../../entities/Product";
 import { DynamoRepository } from "../DynamoRepository/DynamoRepository";
 
 export class DynamoOrderRepository
@@ -13,16 +13,36 @@ export class DynamoOrderRepository
     super("ORDER_TABLE");
   }
 
-  async put(order: Order) {
+  async create(order: Order) {
     await this.documentClient
       .put({
         TableName: this.tableName,
         Item: order,
+        ConditionExpression: "attribute_not_exists(id)",
       })
       .promise();
   }
 
-  async getById(id: OrderId): Promise<Order> {
+  async addProduct(id: OrderId, product: Product, isDiscountApplied: boolean) {
+    await this.documentClient
+      .update({
+        TableName: this.tableName,
+        Key: {
+          id,
+        },
+        UpdateExpression:
+          "SET products = list_append(products, :product), isDiscountApplied = :isDiscountApplied",
+        ExpressionAttributeValues: {
+          ":product": [product],
+          ":isDiscountApplied": isDiscountApplied,
+        },
+      })
+      .promise();
+  }
+
+  async removeProduct(product: Product) {}
+
+  async findById(id: OrderId): Promise<Order> {
     const { Item } = await this.documentClient
       .get({
         TableName: this.tableName,
@@ -31,7 +51,7 @@ export class DynamoOrderRepository
       .promise();
 
     if (!Item) {
-      throw new IllegalArgumentException(`Order with ${id} not found`);
+      throw new IllegalArgumentException(`Order not found`);
     }
 
     return new Order(
@@ -40,7 +60,8 @@ export class DynamoOrderRepository
       Item.price,
       Item.comment,
       Item.isDiscountApplied,
-      Item.products
+      Item.products,
+      Item.version
     );
   }
 }

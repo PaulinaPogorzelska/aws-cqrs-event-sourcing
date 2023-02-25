@@ -39,7 +39,7 @@ Resources:
           Projection:
             ProjectionType: 'KEYS_ONLY'
       StreamSpecification:
-        StreamViewType: KEYS_ONLY
+        StreamViewType: NEW_IMAGE
   OrderTable:
     Type: AWS::DynamoDB::Table
     Properties:

@@ -7,6 +7,7 @@ export class Order {
     readonly price: string,
     readonly comment: string,
     readonly isDiscountApplied: boolean,
-    readonly products: Product[]
+    readonly products: Product[],
+    readonly version: number
   ) {}
 }

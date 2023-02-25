@@ -4,6 +4,9 @@ plugins:
   - serverless-webpack
   - serverless-iam-roles-per-function
 
+package:
+  individually: true
+
 custom:
   webpack:
     webpackConfig: 'webpack.config.js'
@@ -70,22 +73,14 @@ functions:
       - Effect: Allow
         Action: dynamodb:GetItem
         Resource: !GetAtt ProductTable.Arn
-  onOrderProjection:
-    handler: src/adapters/event/onOrderProjection/onOrderProjection.handler
+  onOrderEventStoreStream:
+    handler: src/adapters/event/onOrderEventStoreStream/onOrderEventStoreStream.handler
     environment:
-      PRODUCT_TABLE: !Ref ProductTable
-      ORDER_EVENT_STORE_TABLE: !Ref OrderEventStoreTable
-      ORDER_TABLE: !Ref OrderTable
+      EVENT_BUS: !Ref EventBus
     iamRoleStatements:
       - Effect: Allow
-        Action: dynamodb:Query
-        Resource: !GetAtt OrderEventStoreTable.Arn
-      - Effect: Allow
-        Action: dynamodb:GetItem
-        Resource: !GetAtt ProductTable.Arn
-      - Effect: Allow
-        Action: dynamodb:PutItem
-        Resource: !GetAtt OrderTable.Arn
+        Action: events:PutEvents
+        Resource: !GetAtt EventBus.Arn
     events:
       - stream:
           type: dynamodb
@@ -93,7 +88,45 @@ functions:
             Fn::GetAtt:
               - OrderEventStoreTable
               - StreamArn
+  onOrderCreated:
+    handler: src/adapters/event/onOrderCreated/onOrderCreated.handler
+    environment:
+      ORDER_TABLE: !Ref OrderTable
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:GetItem
+          - dynamodb:PutItem
+        Resource: !GetAtt OrderTable.Arn
+    events:
+      - eventBridge:
+          eventBus: !Ref EventBus
+          pattern:
+            detail-type:
+              - ORDER_CREATED
+  onProductAddedToOrder:
+    handler: src/adapters/event/onProductAddedToOrder/onProductAddedToOrder.handler
+    environment:
+      ORDER_TABLE: !Ref OrderTable
+      PRODUCT_TABLE: !Ref ProductTable
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:GetItem
+          - dynamodb:UpdateItem
+        Resource: !GetAtt OrderTable.Arn
+      - Effect: Allow
+        Action: dynamodb:GetItem
+        Resource: !GetAtt ProductTable.Arn
+    events:
+      - eventBridge:
+          eventBus: !Ref EventBus
+          pattern:
+            detail-type:
+              - PRODUCT_ADDED_TO_ORDER
+
 
 
 resources:
   - ${file(src/adapters/database/database.yml)}
+  - ${file(src/adapters/event/eventBus.yml)}

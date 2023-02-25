@@ -1,7 +1,7 @@
 import { DynamoDBStreamEvent, Context, Callback } from "aws-lambda";
 import { logger } from "../../../shared/logger/logger";
 
-export const projectionMiddleware =
+export const eventMiddleware =
   <
     E extends DynamoDBStreamEvent = DynamoDBStreamEvent,
     C extends Context = Context

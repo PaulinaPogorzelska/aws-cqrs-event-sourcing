@@ -10,14 +10,6 @@ function makeResponse(message: unknown, statusCode: number) {
   };
 }
 
-function makeSuccessResponse(message: unknown, code: number = 200) {
-  return makeResponse(message, code);
-}
-
-function makeErrorResponse(message: string, code: number) {
-  return makeResponse(message, code);
-}
-
 export const httpMiddleware =
   <E = unknown, R = unknown, C extends Context = Context>(
     handler: (event: E, context: C, ctx: Callback) => Promise<R>,
@@ -29,7 +21,7 @@ export const httpMiddleware =
     try {
       const result = await handler(event, context, ctx);
 
-      return makeSuccessResponse(result, successCode);
+      return makeResponse(result, successCode || 200);
     } catch (err) {
       if (
         err instanceof DomainError ||
@@ -37,10 +29,10 @@ export const httpMiddleware =
       ) {
         logger.info({ event }, "400 error while executing lambda");
 
-        return makeErrorResponse(err.message, 400);
+        return makeResponse(err.message, 400);
       }
 
       logger.error({ err }, "Error while executing lambda");
-      return makeErrorResponse("Internal server error", 500);
+      return makeResponse("Internal server error", 500);
     }
   };
