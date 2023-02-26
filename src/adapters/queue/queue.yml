@@ -1,0 +1,3 @@
+Resources:
+  EventsQueue: 
+    Type: AWS::SQS::Queue

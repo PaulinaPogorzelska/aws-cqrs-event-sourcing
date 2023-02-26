@@ -1,11 +1,8 @@
-import { DynamoDBStreamEvent, Context, Callback } from "aws-lambda";
-import { logger } from "../../../shared/logger/logger";
+import { Callback, Context } from "aws-lambda";
+import { logger } from "../logger/logger";
 
-export const eventMiddleware =
-  <
-    E extends DynamoDBStreamEvent = DynamoDBStreamEvent,
-    C extends Context = Context
-  >(
+export const asyncMiddleware =
+  <E = unknown, C extends Context = Context>(
     handler: (event: E, context: C, ctx: Callback) => Promise<void>
   ) =>
   async (event: E, context: C, ctx: Callback) => {

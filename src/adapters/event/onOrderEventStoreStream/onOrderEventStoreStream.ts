@@ -1,9 +1,9 @@
 import { DynamoDBStreamHandler } from "aws-lambda";
 import { AttributeMap, Converter } from "aws-sdk/clients/dynamodb";
-import { EventBroker } from "../../../ports/event/EventBroker";
+import { Queue } from "../../../ports/queue/Queue";
+import { asyncMiddleware } from "../../../shared/asyncMiddleware/asyncMiddleware";
 import { notEmpty } from "../../../shared/utils/notEmpty";
-import { EventBridgeEventBroker } from "../EventBridgeEventBroker/EventBridgeEventBroker";
-import { eventMiddleware } from "../eventMiddleware/eventMiddleware";
+import { SQSQueue } from "../../queue/SQSQueue/SQSQueue";
 
 interface InsertedRecord {
   aggregateId: string;
@@ -14,10 +14,17 @@ interface InsertedRecord {
   timestamp: string;
 }
 
-const eventBroker: EventBroker = new EventBridgeEventBroker();
+export interface MessageBody {
+  type: InsertedRecord["type"];
+  payload: InsertedRecord["payload"];
+  version: InsertedRecord["version"];
+  aggregateId: InsertedRecord["aggregateId"];
+}
 
-export const handler: DynamoDBStreamHandler = eventMiddleware(async (event) => {
-  const events = event.Records.map((event) => {
+const queue: Queue = new SQSQueue();
+
+export const handler: DynamoDBStreamHandler = asyncMiddleware(async (event) => {
+  const events: MessageBody[] = event.Records.map((event) => {
     if (event.eventName !== "INSERT") {
       return null;
     }
@@ -28,14 +35,11 @@ export const handler: DynamoDBStreamHandler = eventMiddleware(async (event) => {
 
     return {
       type: record.type,
-      payload: {
-        data: record.payload,
-        version: record.version,
-        orderId: record.aggregateId,
-      },
-      source: "onOrderEventStoreStream",
+      payload: record.payload,
+      version: record.version,
+      aggregateId: record.aggregateId,
     };
   }).filter(notEmpty);
 
-  await eventBroker.publishEvents(events);
+  await queue.pushMessages(events);
 });

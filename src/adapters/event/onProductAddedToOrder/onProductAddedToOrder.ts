@@ -1,6 +1,7 @@
 import { EventBridgeHandler } from "aws-lambda";
 import { OrderRepository } from "../../../ports/database/OrderRepository";
 import { ProductRepository } from "../../../ports/database/ProductRepository";
+import { asyncMiddleware } from "../../../shared/asyncMiddleware/asyncMiddleware";
 import { logger } from "../../../shared/logger/logger";
 import { DynamoOrderRepository } from "../../database/DynamoOrderRepository/DynamoOrderRepository";
 import { DynamoProductRepository } from "../../database/DynamoProductRepository/DynamoProductRepository";
@@ -21,7 +22,7 @@ export const handler: EventBridgeHandler<
   "PRODUCT_ADDED_TO_ORDER",
   Detail,
   void
-> = async (event) => {
+> = asyncMiddleware(async (event) => {
   logger.info({ event }, "event");
 
   const {
@@ -38,4 +39,4 @@ export const handler: EventBridgeHandler<
 
   const product = await productRepository.findById(productId);
   await orderRepository.addProduct(orderId, product, isDiscountApplied);
-};
+});

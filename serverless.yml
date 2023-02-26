@@ -76,18 +76,30 @@ functions:
   onOrderEventStoreStream:
     handler: src/adapters/event/onOrderEventStoreStream/onOrderEventStoreStream.handler
     environment:
+      QUEUE_URL: !Ref EventsQueue
+    iamRoleStatements:
+      - Effect: Allow
+        Action: sqs:SendMessage
+        Resource: !GetAtt EventsQueue.Arn
+    events:
+      - stream:
+          type: dynamodb
+          arn: !GetAtt OrderEventStoreTable.StreamArn
+  eventsQueueWorker:
+    handler: src/adapters/queue/eventsQueueWorker/eventsQueueWorker.handler
+    environment:
       EVENT_BUS: !Ref EventBus
+      ORDER_EVENT_STORE_TABLE: !Ref OrderEventStoreTable
     iamRoleStatements:
       - Effect: Allow
         Action: events:PutEvents
         Resource: !GetAtt EventBus.Arn
+      - Effect: Allow
+        Action: dynamodb:Query
+        Resource: !GetAtt OrderEventStoreTable.Arn
     events:
-      - stream:
-          type: dynamodb
-          arn:
-            Fn::GetAtt:
-              - OrderEventStoreTable
-              - StreamArn
+      - sqs:
+          arn: !GetAtt EventsQueue.Arn
   onOrderCreated:
     handler: src/adapters/event/onOrderCreated/onOrderCreated.handler
     environment:
@@ -130,3 +142,4 @@ functions:
 resources:
   - ${file(src/adapters/database/database.yml)}
   - ${file(src/adapters/event/eventBus.yml)}
+  - ${file(src/adapters/queue/queue.yml)}
