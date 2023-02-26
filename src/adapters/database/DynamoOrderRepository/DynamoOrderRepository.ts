@@ -23,7 +23,13 @@ export class DynamoOrderRepository
       .promise();
   }
 
-  async addProduct(id: OrderId, product: Product, isDiscountApplied: boolean) {
+  async addProduct(
+    id: OrderId,
+    product: Product,
+    isDiscountApplied: boolean,
+    price: string,
+    version: number
+  ) {
     await this.documentClient
       .update({
         TableName: this.tableName,
@@ -31,10 +37,12 @@ export class DynamoOrderRepository
           id,
         },
         UpdateExpression:
-          "SET products = list_append(products, :product), isDiscountApplied = :isDiscountApplied",
+          "SET products = list_append(products, :product), isDiscountApplied = :isDiscountApplied, price = :price, version = :version",
         ExpressionAttributeValues: {
           ":product": [product],
           ":isDiscountApplied": isDiscountApplied,
+          ":price": price,
+          ":version": version,
         },
       })
       .promise();
@@ -54,14 +62,14 @@ export class DynamoOrderRepository
       throw new IllegalArgumentException(`Order not found`);
     }
 
-    return new Order(
-      Item.id,
-      Item.customerEmail,
-      Item.price,
-      Item.comment,
-      Item.isDiscountApplied,
-      Item.products,
-      Item.version
-    );
+    return Order.create(<Order>Item);
+  }
+
+  async find(): Promise<Order[]> {
+    const { Items } = await this.documentClient
+      .scan({ TableName: this.tableName })
+      .promise();
+
+    return Items ? Items.map((item) => Order.create(<Order>item)) : [];
   }
 }

@@ -40,6 +40,11 @@ export const orderEventStore = new EventStore({
         return {
           ...orderAggregate,
           version,
+          isDiscountApplied: event.payload.isDiscountApplied,
+          price: Price.from(
+            event.payload.price.amount,
+            event.payload.price.currency
+          ),
           products: [...orderAggregate.products, event.payload.productId],
         };
       }
@@ -48,6 +53,11 @@ export const orderEventStore = new EventStore({
         return {
           ...orderAggregate,
           version,
+          isDiscountApplied: event.payload.isDiscountRevoked,
+          price: Price.from(
+            event.payload.price.amount,
+            event.payload.price.currency
+          ),
           products: orderAggregate.products.filter(
             (product) => product !== event.payload.productId
           ),

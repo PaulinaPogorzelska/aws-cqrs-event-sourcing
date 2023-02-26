@@ -37,10 +37,6 @@ export class DynamoProductRepository
       throw new IllegalArgumentException(`Product with ${id} not found`);
     }
 
-    return new Product(
-      Item.id,
-      Item.name,
-      Price.from(Item.price.amount, Item.price.currency)
-    );
+    return Product.create(<Product>Item);
   }
 }

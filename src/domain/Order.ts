@@ -38,10 +38,16 @@ export class Order {
       );
     }
 
+    const newPrice = Price.from(
+      this.data.price.valueOf().amount + productToAdd.price.valueOf().amount,
+      this.data.price.valueOf().currency
+    );
+
     return new OrderProductChanged(
       this.data.id,
       productToAdd.id,
-      this.shouldDiscountBeApplied()
+      this.shouldDiscountBeApplied(),
+      newPrice
     );
   }
 
@@ -60,10 +66,16 @@ export class Order {
       throw new DomainError("Product not found in the order");
     }
 
+    const newPrice = Price.from(
+      this.data.price.valueOf().amount - productToRemove.price.valueOf().amount,
+      this.data.price.valueOf().currency
+    );
+
     return new OrderProductChanged(
       this.data.id,
       productToRemove.id,
-      this.shouldDiscountBeRevoked()
+      this.shouldDiscountBeRevoked(),
+      newPrice
     );
   }
 

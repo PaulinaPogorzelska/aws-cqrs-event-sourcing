@@ -45,13 +45,14 @@ export const addProductToOrderCommand = new Command({
 
     const order = getOrder(orderId, aggregate);
 
-    const { isDiscountApplied } = order.addOrderItem(product);
+    const { isDiscountApplied, price } = order.addOrderItem(product);
 
     await orderEventStore.pushEvent({
       type: "PRODUCT_ADDED_TO_ORDER",
       payload: {
         productId,
         isDiscountApplied,
+        price: price.valueOf(),
       },
       aggregateId: orderId,
       version: version + 1,

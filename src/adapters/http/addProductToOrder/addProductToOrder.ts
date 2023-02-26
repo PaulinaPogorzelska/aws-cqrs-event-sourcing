@@ -47,5 +47,5 @@ export const handler: APIGatewayProxyHandler = httpMiddleware(async (event) => {
     { productRepository }
   );
 
-  return { statusCode: 200, body: "Product added" };
+  return "Product added";
 });

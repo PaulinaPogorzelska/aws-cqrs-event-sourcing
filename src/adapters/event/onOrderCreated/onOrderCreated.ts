@@ -39,15 +39,15 @@ export const handler: EventBridgeHandler<"onProductCreated", Detail, void> =
     } catch (err) {
       if ((err as IllegalArgumentException).message === "Order not found") {
         await orderRepository.create(
-          new Order(
-            orderId,
+          Order.create({
+            id: orderId,
             customerEmail,
-            `${price.amount} ${price.currency}`,
+            price: `${price.amount} ${price.currency}`,
             comment,
             isDiscountApplied,
-            [],
-            version
-          )
+            products: [],
+            version,
+          })
         );
       }
 

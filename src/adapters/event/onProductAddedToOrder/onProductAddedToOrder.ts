@@ -10,6 +10,10 @@ interface Detail {
   data: {
     productId: string;
     isDiscountApplied: boolean;
+    price: {
+      amount: number;
+      currency: string;
+    };
   };
   version: number;
   orderId: string;
@@ -28,7 +32,7 @@ export const handler: EventBridgeHandler<
   const {
     orderId,
     version,
-    data: { productId, isDiscountApplied },
+    data: { productId, isDiscountApplied, price },
   } = event.detail;
 
   const storedOrder = await orderRepository.findById(orderId);
@@ -38,5 +42,11 @@ export const handler: EventBridgeHandler<
   }
 
   const product = await productRepository.findById(productId);
-  await orderRepository.addProduct(orderId, product, isDiscountApplied);
+  await orderRepository.addProduct(
+    orderId,
+    product,
+    isDiscountApplied,
+    `${price.amount} ${price.currency}`,
+    version
+  );
 });

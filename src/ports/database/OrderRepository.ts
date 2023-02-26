@@ -8,12 +8,17 @@ export interface OrderRepository {
   addProduct(
     id: OrderId,
     product: Product,
-    isDiscountApplied: boolean
+    isDiscountApplied: boolean,
+    price: string,
+    version: number
   ): Promise<void>;
   removeProduct(
     id: OrderId,
     productId: ProductId,
-    isDiscountApplied: boolean
+    isDiscountApplied: boolean,
+    price: string,
+    version: number
   ): Promise<void>;
   findById(id: OrderId): Promise<Order>;
+  find(): Promise<Order[]>;
 }

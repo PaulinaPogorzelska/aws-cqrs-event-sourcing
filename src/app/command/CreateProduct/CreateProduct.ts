@@ -22,7 +22,11 @@ export const createProductCommand = new Command({
     { productRepository }: Context
   ) => {
     const id = ProductId.generate();
-    const product = new Product(id, name, Price.from(priceAmount, "PLN"));
+    const product = Product.create({
+      id,
+      name,
+      price: Price.from(priceAmount, "PLN"),
+    });
 
     await productRepository.create(product);
 
