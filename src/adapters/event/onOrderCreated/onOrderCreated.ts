@@ -1,7 +1,6 @@
 import { EventBridgeHandler } from "aws-lambda";
 import { OrderRepository } from "../../../ports/database/OrderRepository";
 import { asyncMiddleware } from "../../../shared/asyncMiddleware/asyncMiddleware";
-import { IllegalArgumentException } from "../../../shared/errors/IllegalArgumentException";
 import { logger } from "../../../shared/logger/logger";
 import { DynamoOrderRepository } from "../../database/DynamoOrderRepository/DynamoOrderRepository";
 import { Order } from "../../entities/Order";
@@ -24,8 +23,6 @@ interface Detail {
 
 export const handler: EventBridgeHandler<"onProductCreated", Detail, void> =
   asyncMiddleware(async (event) => {
-    logger.info({ event }, "Event");
-
     const {
       version,
       orderId,
@@ -37,20 +34,20 @@ export const handler: EventBridgeHandler<"onProductCreated", Detail, void> =
 
       logger.warn("Order already created");
     } catch (err) {
-      if ((err as IllegalArgumentException).message === "Order not found") {
-        await orderRepository.create(
-          Order.create({
-            id: orderId,
-            customerEmail,
-            price: `${price.amount} ${price.currency}`,
-            comment,
-            isDiscountApplied,
-            products: [],
-            version,
-          })
-        );
+      if ((err as Error).message !== "Order not found") {
+        throw new Error((err as Error).message);
       }
 
-      throw new Error((err as Error).message);
+      await orderRepository.create(
+        Order.create({
+          id: orderId,
+          customerEmail,
+          price: `${price.amount} ${price.currency}`,
+          comment,
+          isDiscountApplied,
+          products: [],
+          version,
+        })
+      );
     }
   });

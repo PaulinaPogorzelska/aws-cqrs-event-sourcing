@@ -136,8 +136,8 @@ functions:
           pattern:
             detail-type:
               - PRODUCT_ADDED_TO_ORDER
-  getProduct:
-    handler: src/adapters/http/getProduct/getProduct.handler
+  getOrder:
+    handler: src/adapters/http/getOrder/getOrder.handler
     environment:
       ORDER_TABLE: !Ref OrderTable
     iamRoleStatements:
@@ -152,8 +152,8 @@ functions:
             parameters: 
               paths: 
                 id: true
-  getProducts:
-    handler: src/adapters/http/getProducts/getProducts.handler
+  getOrders:
+    handler: src/adapters/http/getOrders/getOrders.handler
     environment:
       ORDER_TABLE: !Ref OrderTable
     iamRoleStatements:

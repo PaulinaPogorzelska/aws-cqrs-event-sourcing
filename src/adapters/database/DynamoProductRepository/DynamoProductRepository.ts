@@ -1,4 +1,3 @@
-import { Price } from "../../../domain/valueObjects/Price";
 import { Product } from "../../entities/Product";
 import { ProductId } from "../../../domain/valueObjects/ProductId";
 import { ProductRepository } from "../../../ports/database/ProductRepository";
