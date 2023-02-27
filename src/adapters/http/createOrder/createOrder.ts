@@ -1,6 +1,6 @@
 import type { APIGatewayProxyHandler } from "aws-lambda";
 import joi from "joi";
-import { createOrderCommand } from "../../../app/command/CreateOrder/CreateOrder";
+import { createOrderCommand } from "../../../app/command/createOrder/createOrder";
 import { IllegalArgumentException } from "../../../shared/errors/IllegalArgumentException";
 import { orderEventStore } from "../../database/OrderEventStore/orderEventStore";
 import { httpMiddleware } from "../httpMiddleware/httpMiddleware";

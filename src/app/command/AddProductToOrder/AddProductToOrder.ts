@@ -20,7 +20,6 @@ const getOrder = (id: OrderId, aggregate: OrderAggregate) => {
     aggregate.customerEmail,
     aggregate.price,
     aggregate.comment,
-    aggregate.isDiscountApplied,
     aggregate.products
   );
 };
@@ -45,14 +44,13 @@ export const addProductToOrderCommand = new Command({
 
     const order = getOrder(orderId, aggregate);
 
-    const { isDiscountApplied, price } = order.addOrderItem(product);
+    order.addOrderItem(product);
 
     await orderEventStore.pushEvent({
       type: "PRODUCT_ADDED_TO_ORDER",
       payload: {
         productId,
-        isDiscountApplied,
-        price: price.valueOf(),
+        productPrice: product.price.valueOf(),
       },
       aggregateId: orderId,
       version: version + 1,

@@ -9,7 +9,7 @@ import { Product } from "../adapters/entities/Product";
 import { ProductId } from "./valueObjects/ProductId";
 
 export class Order {
-  private readonly MIN_ORDER_ITEMS_DISCOUNT_COUNT = 5;
+  private static readonly MIN_ORDER_ITEMS_DISCOUNT_COUNT = 5;
   private readonly MAX_ORDER_ITEMS = 10;
 
   constructor(
@@ -23,13 +23,12 @@ export class Order {
       EmailAddress.from(customerEmail),
       Price.from(0, "PLN"),
       "",
-      false
+      Order.shouldDiscountBeApplied([])
     );
   }
 
-  private shouldDiscountBeApplied = () =>
-    this.products.length + 1 >= this.MIN_ORDER_ITEMS_DISCOUNT_COUNT &&
-    this.data.isDiscountApplied === false;
+  static shouldDiscountBeApplied = (products: ProductId[]) =>
+    products.length + 1 >= this.MIN_ORDER_ITEMS_DISCOUNT_COUNT;
 
   addOrderItem(productToAdd: Product) {
     if (this.products.length === this.MAX_ORDER_ITEMS) {
@@ -38,26 +37,10 @@ export class Order {
       );
     }
 
-    const newPrice = Price.from(
-      this.data.price.valueOf().amount + productToAdd.price.valueOf().amount,
-      this.data.price.valueOf().currency
-    );
-
-    return new OrderProductChanged(
-      this.data.id,
-      productToAdd.id,
-      this.shouldDiscountBeApplied(),
-      newPrice
-    );
+    return new OrderProductChanged(this.data.id, productToAdd.id);
   }
 
-  private shouldDiscountBeRevoked = () =>
-    this.products.length - 1 < this.MIN_ORDER_ITEMS_DISCOUNT_COUNT &&
-    this.data.isDiscountApplied;
-
   removeOrderItem(productToRemove: Product): OrderProductChanged {
-    const events = [];
-
     const product = this.products.find(
       (productId) => productId === productToRemove.id
     );
@@ -66,17 +49,7 @@ export class Order {
       throw new DomainError("Product not found in the order");
     }
 
-    const newPrice = Price.from(
-      this.data.price.valueOf().amount - productToRemove.price.valueOf().amount,
-      this.data.price.valueOf().currency
-    );
-
-    return new OrderProductChanged(
-      this.data.id,
-      productToRemove.id,
-      this.shouldDiscountBeRevoked(),
-      newPrice
-    );
+    return new OrderProductChanged(this.data.id, productToRemove.id);
   }
 
   valueOf() {

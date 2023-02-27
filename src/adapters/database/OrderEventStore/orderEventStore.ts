@@ -40,12 +40,12 @@ export const orderEventStore = new EventStore({
         return {
           ...orderAggregate,
           version,
-          isDiscountApplied: event.payload.isDiscountApplied,
-          price: Price.from(
-            event.payload.price.amount,
-            event.payload.price.currency
-          ),
           products: [...orderAggregate.products, event.payload.productId],
+          price: Price.from(
+            orderAggregate.price.valueOf().amount +
+              event.payload.productPrice.amount,
+            orderAggregate.price.valueOf().currency
+          ),
         };
       }
 
@@ -53,13 +53,13 @@ export const orderEventStore = new EventStore({
         return {
           ...orderAggregate,
           version,
-          isDiscountApplied: event.payload.isDiscountRevoked,
-          price: Price.from(
-            event.payload.price.amount,
-            event.payload.price.currency
-          ),
           products: orderAggregate.products.filter(
             (product) => product !== event.payload.productId
+          ),
+          price: Price.from(
+            orderAggregate.price.valueOf().amount -
+              event.payload.productPrice.amount,
+            orderAggregate.price.valueOf().currency
           ),
         };
       }

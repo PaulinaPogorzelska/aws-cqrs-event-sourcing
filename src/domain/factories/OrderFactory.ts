@@ -11,11 +11,16 @@ export class OrderFactory {
     customerEmail: EmailAddress,
     price: Price,
     comment: string,
-    isDiscountApplied: boolean,
     products: ProductId[]
   ): Order {
     return new Order(
-      new OrderData(orderId, customerEmail, price, comment, isDiscountApplied),
+      new OrderData(
+        orderId,
+        customerEmail,
+        price,
+        comment,
+        Order.shouldDiscountBeApplied(products)
+      ),
       products
     );
   }

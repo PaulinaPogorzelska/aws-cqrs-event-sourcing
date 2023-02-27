@@ -1,6 +1,6 @@
 import { APIGatewayProxyHandler } from "aws-lambda";
 import joi from "joi";
-import { addProductToOrderCommand } from "../../../app/command/AddProductToOrder/AddProductToOrder";
+import { addProductToOrderCommand } from "../../../app/command/addProductToOrder/addProductToOrder";
 import { ProductRepository } from "../../../ports/database/ProductRepository";
 import { IllegalArgumentException } from "../../../shared/errors/IllegalArgumentException";
 import { DynamoProductRepository } from "../../database/DynamoProductRepository/DynamoProductRepository";

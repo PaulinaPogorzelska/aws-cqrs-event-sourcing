@@ -15,6 +15,20 @@ interface Detail {
       currency: string;
     };
   };
+  aggregate: {
+    aggregateId: string;
+    version: number;
+    comment: string;
+    customerEmail: {
+      address: string;
+    };
+    isDiscountApplied: boolean;
+    price: {
+      amount: number;
+      currency: string;
+    };
+    products: string[];
+  };
   version: number;
   orderId: string;
 }
@@ -27,12 +41,11 @@ export const handler: EventBridgeHandler<
   Detail,
   void
 > = asyncMiddleware(async (event) => {
-  logger.info({ event }, "event");
-
   const {
     orderId,
     version,
-    data: { productId, isDiscountApplied, price },
+    data: { productId },
+    aggregate: { price, isDiscountApplied },
   } = event.detail;
 
   const storedOrder = await orderRepository.findById(orderId);
@@ -42,6 +55,7 @@ export const handler: EventBridgeHandler<
   }
 
   const product = await productRepository.findById(productId);
+
   await orderRepository.addProduct(
     orderId,
     product,
